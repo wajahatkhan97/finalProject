@@ -112,7 +112,7 @@ const colorScale = d3.scaleLinear()
 
 d3.queue()
     .defer(d3.json, "https://gist.githubusercontent.com/Bradleykingz/3aa5206b6819a3c38b5d73cb814ed470/raw/a476b9098ba0244718b496697c5b350460d32f99/us-states.json")
-    .defer(d3.json,"/localization.json" )
+    .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/localization.json" )
     .defer(d3.json,"/us.json" )
     .defer(d3.json,"/unemployee.json" )
     .await(ready)
