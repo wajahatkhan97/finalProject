@@ -116,7 +116,7 @@ d3.queue()
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/localization.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/unemployee.json" )
     .await(ready)
-function ready(error, data, stateCoord,  countiesFeatures, statedata) {
+function ready(error, stateCoord,  countiesFeatures, data, statedata) {
     d3.select("#goback").style("visibility", "hidden");
 
         d3.select("#goback").on("click", function(){
