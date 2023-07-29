@@ -8,14 +8,33 @@
     body {
         background-color: #363945;
     }
-    .stateLabel{
+.stateLabel{
   display: block;   /* hide all country labels by default */
 }
 .statecases{
   display: none;   /* hide all country labels by default */
 }
+#covidmap {
+    width:1200px; /* or whatever width you want. */
+   height: 600px; /* or whatever width you want. */
+   display: inline-block;
+}
+#sceneTwo {
+    width:900px; /* or whatever width you want. */
+   height: 600px; /* or whatever width you want. */
+   display: inline-block;
+}
+
+#barchart{
+    fill:yellowgreen ;
+}
+
+#unemployementRate{
+    fill:#97ca30 ;
+}
+
 #rect{
-    fill:blue ;
+    fill:green ;
 }
 
 .county{
@@ -23,19 +42,47 @@
     cursor: pointer;
 }
 
+#xaxis {
+    stroke: black;
+}
+#yaxis {
+    stroke: black;
+}
+#xtaxis {
+    stroke: black;
+}
+#ytaxis {
+    stroke: black;
+}
+#slider-simple{
+    text-decoration-color: rgb(158, 84, 84);
+}
+#heading{
+    text-align: center;
+}
 </style> 
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script src="./d3-simple-slider.js"></script>
 
 </head>
-<body onmousewheel= centerNode()>
-<div id = "slider">
+<body>
+    <div id = "button">
+        <Button id = "goback" title="Main map">Main map</Button>
+    </div>
+    <div id ="heading">
+        <H2 id = "text">COVID-19 cases by states</H2>
+    </div>
+    <div id = "slider">
+    <H3>Use slider to choose year</H4>
     <p id = 'slider-simple'></p>
 </div>
+
 <div id = "covidmap"></div>
+<div id = "sceneTwo"></div>
+<div id = "sceneThree"></div>
 <script type="text/javascript">
-const width = 900;
+const width = 1200;
 const height = 600;
 
 var svg = d3.select("#covidmap").append("svg")
@@ -48,7 +95,6 @@ var projection = d3.geoAlbersUsa()
     .scale([1000]); // scale things down so see entire US
 
 var path = d3.geoPath().projection(projection);
-// countriesGroup = svg.append("g").attr("id", "map");
 
 var maxZoom;
 var minZoom;
@@ -62,107 +108,41 @@ function getTextBox(selection) {
 
 const colorScale = d3.scaleLinear()
     .domain([0, 10000000])
-        .range(["#00F200", "#00BC4C", "#00806D", "#85FB44"].reverse());
-
-
-
-function initiateZoom() {
-  // Define a "minzoom" whereby the "Countries" is as small possible without leaving white space at top/bottom or sides
-  minZoom = Math.max(d3.select("#covidmap").style("width") / width, d3.select("#covidmap").style("height") / height);
-  // set max zoom to a suitable factor of this value
-  maxZoom = 20 * minZoom;
-  // set extent of zoom to chosen values
-  // set translate extent so that panning can't cause map to move out of viewport
-  zoom
-    .scaleExtent([minZoom, maxZoom])
-    .translateExtent([[0, 0], [width, height]])
-  ;
-  // define X and Y offset for centre of map to be shown in centre of holder
-  midX = (d3.select("#covidmap").style("width") - minZoom * width) / 2;
-  midY = (d3.select("#covidmap").style("height") - minZoom * height) / 2;
-  // change zoom transform to min zoom and centre offsets
-  svg.call(zoom.transform, d3.zoomIdentity.translate(midX, midY).scale(minZoom));
-}
-
-// zoom to show a bounding box, with optional additional padding as percentage of box size
-function boxZoom(box, centroid, paddingPerc) {
-  minXY = box[0];
-  maxXY = box[1];
-  // find size of map area defined
-  zoomWidth = Math.abs(minXY[0] - maxXY[0]);
-  zoomHeight = Math.abs(minXY[1] - maxXY[1]);
-  // find midpoint of map area defined
-  zoomMidX = centroid[0];
-  zoomMidY = centroid[1];
-  // increase map area to include padding
-  zoomWidth = zoomWidth * (1 + paddingPerc / 100);
-  zoomHeight = zoomHeight * (1 + paddingPerc / 100);
-  // find scale required for area to fill svg
-  
-  maxXscale = width / zoomWidth;
-  maxYscale = height / zoomHeight;
-    zoomScale = Math.min(maxXscale, maxYscale);
-
-  // Find screen pixel equivalent once scaled
-  offsetX = zoomScale * zoomMidX;
-  offsetY = zoomScale * zoomMidY;
-  // Find offset to centre, making sure no gap at left or top of holder
-  dleft = Math.min(0, width / 2 - offsetX);
-  dtop = Math.min(0, height / 2 - offsetY);
-  return svg
-    .transition()
-    .duration(500)
-    .call(
-      zoom.transform,
-      d3.zoomIdentity.translate(dleft, dtop).scale(zoomScale)
-    );
-}
-
-function centerNode(){
-    initiateZoom();    
-}
-
-function resize(){
-    svg
-    .attr("width",width)
-    .attr("height",height);
- initiateZoom();
-}
-
-// Create function to apply zoom to countriesGroup
-function zoomed() {
-    
-  t = d3
-    .event
-    .transform;
-    countriesGroup
-    .attr("transform","translate(" + [t.x, t.y] + ")scale(" + t.k + ")")
-  ;
-}
-
-// Define map zoom behaviour
-var zoom = d3
-  .zoom()
-  .on("zoom", zoomed);
-
+        .range(["#CCFFFF", "#33FFFF", "#00CCCC", "#009999"].reverse());
 
 d3.queue()
     .defer(d3.json, "https://gist.githubusercontent.com/Bradleykingz/3aa5206b6819a3c38b5d73cb814ed470/raw/a476b9098ba0244718b496697c5b350460d32f99/us-states.json")
-    .defer(d3.json,"https://github.com/wajahatkhan97/finalProject/blob/main/localization.json" )
+    .defer(d3.json,"/localization.json" )
     .defer(d3.json,"/us.json" )
     .defer(d3.json,"/unemployee.json" )
     .await(ready)
 function ready(error, stateCoord, data, countiesFeatures, statedata) {
-            // console.log(statedata.UnemploymentMedianIncome[0].FIPS_Code)
-        //for each county data iterate over and combine FIPS code //goal is to use state name to display only specific state county
-    // .attr("id", function(d,i){
-    //          return "county" + d.properties.name;
-    //      })
+    d3.select("#goback").style("visibility", "hidden");
+
+        d3.select("#goback").on("click", function(){
+            d3.select("#map").transition().duration(500).style("visibility", "visible");//temporary
+            d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
+            d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
+            d3.select("#total").style("display", "none")
+            d3.select(".unemployeetotal").remove(); 
+            d3.select("#bargraph").remove();
+            d3.select(".unemployeetotalthird").remove(); 
+            d3.select("#rect").remove();
+            d3.select("#xaxis").remove();
+            d3.select("#yaxis").remove();
+            d3.select("#xtaxis").remove();
+            d3.select("#goback").style("visibility", "hidden");
+
+            d3.select("#ytaxis").remove();
+
+        });
+
+
         var activeState = null;
             const count = 0;
             var year = d3.timeFormat("%Y") //will be used to format year
             var sliderYear;
-            countriesGroup = svg.append("g").attr("id", "map");
+            countriesGroup = svg.append("g").attr("id", "map").attr("width", 1200);
 
             var parseTime = d3.timeParse("%Y");
             //show default map
@@ -183,8 +163,13 @@ function ready(error, stateCoord, data, countiesFeatures, statedata) {
                d3.select("#total").style("display", "none")
             d3.select(".unemployeetotal").remove(); 
             d3.select("#bargraph").remove();
+            d3.select(".unemployeetotalthird").remove(); 
+            d3.select("#rect").remove();
             d3.select("#xaxis").remove();
             d3.select("#yaxis").remove();
+            d3.select("#xtaxis").remove();
+            d3.select("#ytaxis").remove();
+
             runSlide(sliderYear, 1)
 
             });
@@ -206,7 +191,6 @@ function ready(error, stateCoord, data, countiesFeatures, statedata) {
 
                 }
             for (let i =0 ; i < stateCoord.features.length; i++) {
-               // console.log(data[i].state);
                for (let j  =0; j < data.length; j++) {
                 if (stateCoord.features[i].properties.name == data[j]['administrative_area_level_2'] && data[j]['year'] == sliderYear) {
                     stateCoord.features[i].properties["cases"] = data[j]['confirmed']
@@ -214,26 +198,12 @@ function ready(error, stateCoord, data, countiesFeatures, statedata) {
             }
             
         }
-
-        //todo: fix the code to unselect when select any other state or slider is moved (year is working fine)
-        //todo: zooming in run multiple times (check logs of zoomed)
-
-        //IMPORTANT: Change of requirement for now (have to meet minimum requirement first) 
-        //when user click on state we will open up a rectangular bar showing average data of that state(unemployement dataset)
-
-        //todo: features to add (when a user hover over the map display state name, confirmed cases, deaths, unemployement rate, average cases of all counties)
-        //tood: clicking on the state will take to new scene which will display 2 more scenes one county cases filter by year
-        //and second scene showing unemployement from 2020 to 2023 ---- look at Unemployemenet csv file
-
-        /*
-        The scenes should follow a template for visual consistency and follow an order to best convey the message. One way to 
-        implement different scenes is to make each a separate web page. Another way is to use d3.select(id).html = "" 
-        to clear the contents of a container element (e.g. an SVG element) and then repopulate that element using .append().
-        */
        var totalUnemployed = 0;
        var totalEmployeed = 0;
-   scenetwochart(activeState);
-scenethreechart(activeState);
+    
+       scenetwochart(activeState);
+    scenethreechart(activeState);
+
         countriesGroup.selectAll("path")
         .data(stateCoord.features)
         .enter()
@@ -247,28 +217,35 @@ scenethreechart(activeState);
              return "country"+d.properties.name;
          })
          .on("mouseover", function(d, i) {
-          d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "block");
-      })
+         // d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "block");
+         d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "none");
+
+         d3.select("#statecases" + d.properties.cases).style("display", "block");
+
+        })
       .on("click", function(d, i) {
             // show counties with covid cases
 
     // console.log(statedata)
       d3.select("#statecases" + d.properties.cases).style("display", "block");
-      
-      d3.select("#svg").transition().duration(500).style("visibility", "hidden");//delete
-      d3.select("#barchart").transition().duration(500).style("visibility", "visible");//temporary
-      activeState = d;
-      scenetwochart(d)
+      d3.select("#map").transition().duration(500).style("visibility", "hidden");//delete
+      d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
 
+      d3.select("#barchart").transition().duration(500).style("visibility", "visible");//temporary
+      activeState = d.properties.name;
+      console.log(activeState)
+      scenetwochart(activeState)
+        d3.select("#goback").style("visibility","visible")
       //create new svg
 
    }).on("mouseout", function(d, i) {
-          d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "none");
+    d3.select("#statecases" + d.properties.cases).style("display", "none");
+
+    d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "block");
       }).on("slide", function(d, i) {
             //show counties with covid cases
             console.log("te")
       d3.select("#statecases" + d.properties.cases).style("display", "none");
-   
 
     })
 
@@ -279,19 +256,15 @@ function scenetwochart(d){
 
     }
     if (d !== null) {
-        var state = d.properties.name;
-        // d['State'] == abbrState(state,"abbr") && 
-        statedata.UnemploymentMedianIncome.filter(function(d){
-if (state === d['Area_Name']) {
+    statedata.UnemploymentMedianIncome.filter(function(d){
+if (activeState === d['Area_Name']) {
     totalUnemployed = totalUnemployed  + +d['Unemployed' + '_' + sliderYear].replace(",","");
     totalEmployeed = totalEmployeed + +d['Employed' + '_' + sliderYear].replaceAll(",","");
 }})
 
-// console.log(totalUnemployed)
-// console.log(totalEmployeed)
+
 var data = [totalUnemployed,totalEmployeed]
 var max = d3.max(data);
-// console.log(d3.select("#barchart").append('g'))
 var x = d3.scaleBand().domain([0,1]).range([0,400]).padding(0.5)
 var y = d3.scaleLinear().domain([0,max]).range([500,0])
 var height = d3.scaleLinear().domain([0,max]).range([0,500]) 
@@ -302,6 +275,7 @@ d3.select("#barchart")
 .attr("y",function(d){return y(d)})
 .attr("cursor", "pointer")
 .attr("width", 33.3333)
+.attr("id", "rect")
 .attr("height", function(i){return height(i)})
 .attr("fill", "blue")
 .on("mouseover", function(d, i) {
@@ -311,7 +285,10 @@ d3.select("#barchart")
            d3.select("#total").style("display", "none")
             d3.select(".unemployeetotal").remove();
         }).on("click", function(d,i){
-            scenethreechart(state);
+            d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
+            d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible");//temporary
+
+            scenethreechart(activeState);
 })
 
 d3.select("#barchart").append("g").attr("transform","translate(50,50)").attr("id", "xaxis").call(d3.axisLeft(y))
@@ -329,70 +306,70 @@ d3.select("#barchart").append("g").attr("transform","translate(50,550)").attr("i
         var domain  = [];
         var count = 0;
         const map1 = new Map();
-
+        console.log(state)
         if (state === null) {
             createUnemployementStateBarChart();
         }
 
     if (state !== null) {
         
-        // d['State'] == abbrState(state,"abbr") && 
-        statedata.UnemploymentMedianIncome.filter(function(d){
+    statedata.UnemploymentMedianIncome.filter(function(d){
 if (d['State'] == abbrState(state,"abbr") && state !== d['Area_Name']) {
-    //totalUnemployed = totalUnemployed  + +d['Unemployed' + '_' + sliderYear].replace(",","");
+ //   if (counties.length < 11) {
         counties.push(d['Area_Name']);
-        unemployeement_rate.push(d['Unemployment_rate_2022']);
-        map1.set(d['Unemployment_rate_2022'],d['Area_Name']); 
+        'Unemployed' + '_' + sliderYear
+        unemployeement_rate.push(d['Unemployment_rate' + '_' + sliderYear]);
+        map1.set(d['Unemployment_rate' + '_' + sliderYear],d['Area_Name']); 
         domain.push(count);
         count = count + 1;
+    //} else {
 
+   // }
 }})
 
-// console.log(count)
-
-// console.log(counties)
-// console.log(map1)
-
-var data = [totalUnemployed,totalEmployeed,100,200,400,10000,14120]
 var max = d3.max(data);
-// console.log(d3.select("#barchart").append('g'))
-var x = d3.scaleBand().domain(domain).range([0,500]).padding(0.9)
+var x = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11]).range([0,1200]).padding(0.3)
 var y = d3.scaleLinear().domain([0.0,15.0]).range([500,0])
 var height = d3.scaleLinear().domain([0.0,15.0]).range([0,500]) 
+unemployeement_rate = unemployeement_rate.sort(function(a,b){
+    return b - a;
+});
+console.log(unemployeement_rate)
+var sortedData = unemployeement_rate.slice(0,11);
+console.log(sortedData)
 d3.select("#unemployementRate")
 .append("g")
-.attr("transform","translate(50,50)").attr("id", "unemployementRate").selectAll("#unemployementRate").data(unemployeement_rate).enter().append("rect")
+.attr("transform","translate(50,50)").attr("id", "rect").selectAll("#rect").data(sortedData).enter().append("rect")
 .attr("x", function (d,i) {return x(i)})
-.attr("y",function(d){
-    return y(d)})
+.attr("y",function(d){return y(d)})
 .attr("cursor", "pointer")
-.attr("width", 15.3333)
+.attr("width", 33.3333)
+.attr("id", "rect")
 .attr("height", function(i){return height(i)})
 .attr("fill", "blue")
 .on("mouseover", function(d, i) {
-     unemployeeLabel(d, x(i), y(d));
-    d3.select("#total").style("display", "block");
+    unemployeeLabelthird(d, x(i), y(d));
+    d3.select("#totalthird").style("display", "block");
       }).on("mouseout", function(d, i) {
-           d3.select("#total").style("display", "none")
-            d3.select(".unemployeetotal").remove();
+        d3.selectAll("#totalthird").style("display", "none");
+         d3.select(".unemployeetotalthird").remove();
         }).on("click", function(d,i){
             createUnemployementStateBarChart();
 })
-var x1 = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]).range([500,0]);
-d3.select("#unemployementRate").append("g").attr("transform","translate(50,50)").attr("id", "xaxis").call(d3.axisLeft(y))
+var x1 = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11]).range([0,1200]);
+d3.select("#unemployementRate").append("g").attr("transform","translate(50,50)").attr("id", "xtaxis").call(d3.axisLeft(y))
 
-d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)").attr("id", "yaxis").call(d3.axisBottom(x1).tickFormat(function(d,i){
-        
+d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)").attr("id", "ytaxis").call(d3.axisBottom(x1).tickFormat(function(d,i){
+        console.log(d)   
     var stateName = counties[d];
-    return map1.get(unemployeement_rate[i])
+    return map1.get(sortedData[i])
 }))
 
-    }
-
+ }
     }
 
     function createStateBarChart(){
-     d3.select("#covidmap").append("svg")
+     d3.select("#svg").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("id", "barchart")
@@ -400,14 +377,42 @@ d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)"
     }
         
     function createUnemployementStateBarChart(){
-     d3.select("#covidmap").append("svg")
+     d3.select("#svg").append("svg")
     .attr("width", 2000)
     .attr("height", height)
     .attr("id", "unemployementRate")
 
     }
-        
 
+    function unemployeeLabelthird(d, x, y){
+     var totalNumber = d;
+    unemployeed = d3.selectAll('#rect')
+   .append("g")
+   .attr("class", "unemployeetotalthird")
+   .attr("id","totalthird")
+   .on("mouseover", function(d, i) {
+          d3.select(this).style("display", "block");
+      }).on("mouseout", function(d, i) {
+           d3.select(this).style("display", "none")})
+   
+
+unemployeed
+   .append("text")
+   .attr("class", "countryName")
+   .style("text-anchor", "middle")
+   .attr("dx", x)
+   .attr("dy", y)
+   .style("fill", "#97ca30")
+   .text(function(d) {
+      return totalNumber;
+   })
+.attr("text-anchor","middle")
+.attr('font-size','12pt');
+   
+
+ }   
+
+        
  function unemployeeLabel(d, x, y){
      var totalNumber = d;
     unemployeed = d3.selectAll('#bargraph')
@@ -427,7 +432,6 @@ unemployeed
    .attr("dx", x)
    .attr("dy", y)
    .text(function(d) {
-    //   / console.log(totalNumber)
       return totalNumber;
    })
 .attr("text-anchor","middle")
@@ -441,6 +445,7 @@ countryLabels = countriesGroup.selectAll('g')
    .enter()
    .append("g")
    .attr("class", "stateLabel")
+   .attr("cursor", "pointer")
    .attr("id", function(d) {
       return "stateLabel" + d.properties.name.replace(/ +/g, "");
    })
@@ -461,7 +466,7 @@ countryLabels = countriesGroup.selectAll('g')
    .attr("dx", 0)
    .attr("dy", 0)
    .text(function(d) {
-      return d.properties.name;
+      return abbrState(d.properties.name, "abbr");
    })
 .attr("text-anchor","middle")
 .attr('font-size','12pt');
@@ -551,6 +556,7 @@ function abbrState(input, to){
     ];
 
     if (to == 'abbr'){
+    //    console.log(input);
         input = input.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
         for(i = 0; i < states.length; i++){
             if(states[i][0] == input){
@@ -569,47 +575,5 @@ function abbrState(input, to){
 }
 
 </script>
-
-<!-- // var x_axis = d3.axisBottom(x)
-//         .tickFormat("unemployee").ticks(2); 
-// var y_axis = d3.axisLeft(y)
-//  //       .tickFormat(d3.format("s"));
-
-// d3.select("#barchart").append("g").attr("transform","translate(50,50)").call(y_axis)
-
-// d3.select("#barchart").append("g").attr("transform","translate(50,550)").call((x_axis))
-
-
-
-//         var fipcodes = [];
-//         var countiesState;
-// boxZoom(path.bounds(d), path.centroid(d), 20);
-//       for (let i =0 ; i < stateCoord.features.length; i++) {
-//                // console.log(data[i].state);
-//                for (let j  =0; j < data.length; j++) {
-//                 if (stateCoord.features[i].properties.name == d.properties.name)
-//                     {
-//                         d3.select("#country"+d.properties.name).style("fill", "#fff")
-//                         var abbreviation = abbrState(d.properties.name, "abbr");
-
-//                         (statedata.UnemploymentMedianIncome.filter(function(d){
-//                                 if (d['State'] == abbreviation) {
-//                                     fipcodes.push(+d['FIPS_Code'])
-//                                 }
-//                         }))
-//                      counties =  counties.filter(function(d){
-//                           // console.log(d['id'])
-//                            if (fipcodes.includes(d['id'])) {
-//                                d['properties']['state'] = abbreviation;
-//                             }
-//                             return d;
-//                        })
-//                         break;
-//                     }
-//             }
-//             }
-//             populateCounties(d);
-//           d3.selectAll("#countiesTX").style("fill", "black"); -->
-
 </body>
 </html>
