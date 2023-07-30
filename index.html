@@ -143,7 +143,7 @@ const colorScale = d3.scaleLinear()
 
 d3.queue()
     .defer(d3.json, "https://gist.githubusercontent.com/Bradleykingz/3aa5206b6819a3c38b5d73cb814ed470/raw/a476b9098ba0244718b496697c5b350460d32f99/us-states.json")
-   .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/us.json" )
+ .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/us.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/localization.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/unemployee.json" )
     .await(ready)
@@ -179,6 +179,8 @@ function ready(error, stateCoord, countiesFeatures, data, statedata) {
             d3.select("#textp").text("(Hover over state to see total covid cases for selected year)")
 
             d3.select("#ytaxis").remove();
+            d3.select("#threeannot").remove();
+            d3.select("#fourannot").remove();
 
             d3.select("#xfaxis").remove();
             d3.select("#yfaxis").remove();
