@@ -81,6 +81,8 @@
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script src="./d3-simple-slider.js"></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+
 
 </head>
 <body>
@@ -361,11 +363,51 @@ d3.select("#barchart")
              scenefourchart(activeState));
 })
 
+
 d3.select("#barchart").append("g").attr("transform","translate(50,50)").attr("id", "xaxis").call(d3.axisLeft(y).tickPadding([-4]))
 
 d3.select("#barchart").append("g").attr("transform","translate(50,550)").attr("id", "yaxis").call(d3.axisBottom(x).tickFormat(function(d,i){
     return i ===0? 'Unemployeed' : 'Employeed'
 }))
+
+const annotations = [
+  {
+    note: {
+      label: "",
+      title: "Total number of Employed " + max
+    },
+    x: x(1),
+    y: y(max),
+    dx: x(1)+10,
+    dy: y(max)+10,
+  }
+]
+var min = d3.min(data);
+const annotationsmin = [
+  {
+    note: {
+      label: "",
+      title: "Total number of Unemployed " + min
+    },
+    x: x(0),
+    y: y(min),
+    dx: x(0)-30,
+    dy: y(max)-30,
+  }
+]
+// Add annotation to the chart
+const makeAnnotations = d3.annotation()
+  .annotations(annotations)
+d3.select("#bargraph")
+  .append("g")
+  .call(makeAnnotations)
+
+  const annot = d3.annotation()
+  .annotations(annotationsmin)
+d3.select("#bargraph")
+  .append("g")
+  .call(annot)
+
 }}
 
     function scenethreechart(state){
