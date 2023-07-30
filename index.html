@@ -88,7 +88,11 @@
         <Button id = "goback" title="Main map">Main map</Button>
     </div>
     <div id ="heading">
-        <H2 id = "text">COVID-19 cases by states</H2>
+        <H2 id = "text">COVID-19 cases by states
+
+            <p>(Hover over state to see total covid cases for selected year)</p>
+        </H2>
+
     </div>
 
     <div id ="heading">
@@ -348,9 +352,6 @@ d3.select("#barchart")
             d3.select(".unemployeetotal").remove();
         }).on("click", function(d,i){
             d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
-//            d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible");//temporary
-            
-//            d3.select("#text").text("Unemployement rate of " + activeState + " " + "Top 11 counties for selected year")
 
         i === 0 ? (d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible") &&
             d3.select("#employementRate").transition().duration(500).style("visibility", "hidden") &&   d3.select("#text").text("Unemployement rate of " + activeState + " " + "Top 11 counties for selected year")
@@ -416,7 +417,7 @@ d3.select("#unemployementRate")
     d3.select("#totalthird").style("display", "block");
       }).on("mouseout", function(d, i) {
         d3.selectAll("#totalthird").style("display", "none");
-         d3.select(".unemployeetotalthird").remove();
+         d3.selectAll(".unemployeetotalthird").remove();
         }).on("click", function(d,i){
             d3.select("#employementRate").transition().duration(500).style("visibility", "hidden");//temporary
             
