@@ -143,7 +143,7 @@ const colorScale = d3.scaleLinear()
 
 d3.queue()
     .defer(d3.json, "https://gist.githubusercontent.com/Bradleykingz/3aa5206b6819a3c38b5d73cb814ed470/raw/a476b9098ba0244718b496697c5b350460d32f99/us-states.json")
-    .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/us.json" )
+   .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/us.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/localization.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/unemployee.json" )
     .await(ready)
@@ -304,7 +304,11 @@ function ready(error, stateCoord, countiesFeatures, data, statedata) {
       d3.select("#text").text(function(){
           return "Unemployeed vs Employeed during Covid-19";
       })
+      d3.select("#textp").text(function(){
+          return "";
+      })
 
+      
     //  d3.select("#textscenetwo").style("visibility", "visible")//hide heading //make other headings to show on different pages
 
    }).on("mouseout", function(d, i) {
