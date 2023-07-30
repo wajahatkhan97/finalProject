@@ -32,10 +32,20 @@
 #unemployementRate{
     fill:#97ca30 ;
 }
-
 #rect{
     fill:green ;
 }
+
+
+#rect_unemployeed{
+    fill:green ;
+}
+
+
+#rect_employeed{
+    fill:green ;
+}
+
 
 .county{
     fill:none;
@@ -54,6 +64,13 @@
 #ytaxis {
     stroke: black;
 }
+
+#xfaxis {
+    stroke: black;
+}
+#yfaxis {
+    stroke: black;
+}
 #slider-simple{
     text-decoration-color: rgb(158, 84, 84);
 }
@@ -63,7 +80,7 @@
 </style> 
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://d3js.org/topojson.v2.min.js"></script>
-    <script src="https://unpkg.com/d3-simple-slider"></script>
+    <script src="./d3-simple-slider.js"></script>
 
 </head>
 <body>
@@ -73,8 +90,17 @@
     <div id ="heading">
         <H2 id = "text">COVID-19 cases by states</H2>
     </div>
+
+    <div id ="heading">
+        <H2 id = "textscenetwo">COVID-19</H2>
+    </div>
+
+    <div id ="heading">
+        <H2 id = "textscenethree">Top 10 counties unemployement rates</H2>
+    </div>
+
     <div id = "slider">
-    <H3>Use slider to choose year</H4>
+    <H3>Use slider to choose year (Range from 2020 - 2022)</H4>
     <p id = 'slider-simple'></p>
 </div>
 
@@ -107,8 +133,8 @@ function getTextBox(selection) {
 }
 
 const colorScale = d3.scaleLinear()
-    .domain([0, 10000000])
-        .range(["#CCFFFF", "#33FFFF", "#00CCCC", "#009999"].reverse());
+    .domain([0, 1000000])
+    .range(["#99FFCC", "#33FF99", "#00994C", "#00CC66"].reverse());
 
 d3.queue()
     .defer(d3.json, "https://gist.githubusercontent.com/Bradleykingz/3aa5206b6819a3c38b5d73cb814ed470/raw/a476b9098ba0244718b496697c5b350460d32f99/us-states.json")
@@ -116,29 +142,44 @@ d3.queue()
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/localization.json" )
     .defer(d3.json,"https://wajahatkhan97.github.io/finalProject/unemployee.json" )
     .await(ready)
-function ready(error, stateCoord,  countiesFeatures, data, statedata) {
+function ready(error, stateCoord, countiesFeatures, data, statedata) {
     d3.select("#goback").style("visibility", "hidden");
+    d3.select("#textscenetwo").style("visibility", "hidden")
+    d3.select("#textscenethree").style("visibility", "hidden")
+    var activeState = null;
 
-        d3.select("#goback").on("click", function(){
+    d3.select("#goback").on("click", function(){
             d3.select("#map").transition().duration(500).style("visibility", "visible");//temporary
             d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
             d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
+            d3.select("#employementRate").transition().duration(500).style("visibility", "hidden");//temporary
+
             d3.select("#total").style("display", "none")
             d3.select(".unemployeetotal").remove(); 
             d3.select("#bargraph").remove();
             d3.select(".unemployeetotalthird").remove(); 
+            d3.select(".employeetotalfourth").remove(); 
+
             d3.select("#rect").remove();
+            d3.select("#rectf").remove();
+
             d3.select("#xaxis").remove();
             d3.select("#yaxis").remove();
             d3.select("#xtaxis").remove();
             d3.select("#goback").style("visibility", "hidden");
+            d3.select("#textscenetwo").style("visibility", "hidden")
+            d3.select("#textscenethree").style("visibility", "hidden")
+
+            d3.select("#text").text("COVID-19 cases by states")
 
             d3.select("#ytaxis").remove();
 
+            d3.select("#xfaxis").remove();
+            d3.select("#yfaxis").remove();
+            activeState = null;
         });
 
 
-        var activeState = null;
             const count = 0;
             var year = d3.timeFormat("%Y") //will be used to format year
             var sliderYear;
@@ -149,7 +190,7 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
            // populateCounties();
             runSlide(year(parseTime("2020")), 0);
             a1 = parseTime("2020")
-            a2 = parseTime("2023")
+            a2 = parseTime("2022")
             var sliderStep = d3
             .sliderBottom()
             .domain([a1,a2])
@@ -164,11 +205,18 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
             d3.select(".unemployeetotal").remove(); 
             d3.select("#bargraph").remove();
             d3.select(".unemployeetotalthird").remove(); 
+            d3.select(".employeetotalfourth").remove(); 
             d3.select("#rect").remove();
+            d3.select("#rectf").remove();
+            d3.select("#rect_unemployeed").remove();
+            d3.select("#rect_employeed").remove();
+
             d3.select("#xaxis").remove();
             d3.select("#yaxis").remove();
             d3.select("#xtaxis").remove();
             d3.select("#ytaxis").remove();
+            d3.select("#xfaxis").remove();
+            d3.select("#yfaxis").remove();
 
             runSlide(sliderYear, 1)
 
@@ -186,8 +234,13 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
             function runSlide(sliderYear, count) {
                 counties = topojson.feature(countiesFeatures,countiesFeatures.objects.counties).features;
                 if  (count === 0) {
+                    scenetwochart(activeState);
+                 scenethreechart(activeState);
+                scenefourchart(activeState);
                     d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
                     d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
+
+                d3.select("#employementRate").transition().duration(500).style("visibility", "hidden");//temporary
 
                 }
             for (let i =0 ; i < stateCoord.features.length; i++) {
@@ -201,9 +254,11 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
        var totalUnemployed = 0;
        var totalEmployeed = 0;
     
-       scenetwochart(activeState);
-    scenethreechart(activeState);
-
+        if (count > 0 && activeState !== null) {
+            scenetwochart(activeState);
+            scenethreechart(activeState);
+                scenefourchart(activeState);
+        }
         countriesGroup.selectAll("path")
         .data(stateCoord.features)
         .enter()
@@ -226,17 +281,22 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
       .on("click", function(d, i) {
             // show counties with covid cases
 
-    // console.log(statedata)
       d3.select("#statecases" + d.properties.cases).style("display", "block");
       d3.select("#map").transition().duration(500).style("visibility", "hidden");//delete
       d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
+      d3.select("#employementRate").transition().duration(500).style("visibility", "hidden");//temporary
 
       d3.select("#barchart").transition().duration(500).style("visibility", "visible");//temporary
       activeState = d.properties.name;
-      console.log(activeState)
+      
       scenetwochart(activeState)
-        d3.select("#goback").style("visibility","visible")
+        d3.select("#goback").style("visibility","visible") 
       //create new svg
+      d3.select("#text").text(function(){
+          return "Unemployeed vs Employeed during Covid-19";
+      })
+
+    //  d3.select("#textscenetwo").style("visibility", "visible")//hide heading //make other headings to show on different pages
 
    }).on("mouseout", function(d, i) {
     d3.select("#statecases" + d.properties.cases).style("display", "none");
@@ -244,8 +304,8 @@ function ready(error, stateCoord,  countiesFeatures, data, statedata) {
     d3.select("#stateLabel" + d.properties.name.replace(/ +/g, "")).style("display", "block");
       }).on("slide", function(d, i) {
             //show counties with covid cases
-            console.log("te")
-      d3.select("#statecases" + d.properties.cases).style("display", "none");
+
+            d3.select("#statecases" + d.properties.cases).style("display", "none");
 
     })
 
@@ -258,11 +318,11 @@ function scenetwochart(d){
     if (d !== null) {
     statedata.UnemploymentMedianIncome.filter(function(d){
 if (activeState === d['Area_Name']) {
-    totalUnemployed = totalUnemployed  + +d['Unemployed' + '_' + sliderYear].replace(",","");
+    totalUnemployed = totalUnemployed  + +d['Unemployed' + '_' + sliderYear].replaceAll(",","");
     totalEmployeed = totalEmployeed + +d['Employed' + '_' + sliderYear].replaceAll(",","");
 }})
 
-
+var selectedBar = 0;
 var data = [totalUnemployed,totalEmployeed]
 var max = d3.max(data);
 var x = d3.scaleBand().domain([0,1]).range([0,400]).padding(0.5)
@@ -275,7 +335,9 @@ d3.select("#barchart")
 .attr("y",function(d){return y(d)})
 .attr("cursor", "pointer")
 .attr("width", 33.3333)
-.attr("id", "rect")
+.attr("id", function(d,i) {
+    return i === 0 ? "rect_unemployeed" :"rect_employeed"  ;
+})
 .attr("height", function(i){return height(i)})
 .attr("fill", "blue")
 .on("mouseover", function(d, i) {
@@ -286,19 +348,24 @@ d3.select("#barchart")
             d3.select(".unemployeetotal").remove();
         }).on("click", function(d,i){
             d3.select("#barchart").transition().duration(500).style("visibility", "hidden");//temporary
-            d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible");//temporary
+//            d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible");//temporary
+            
+//            d3.select("#text").text("Unemployement rate of " + activeState + " " + "Top 11 counties for selected year")
 
-            scenethreechart(activeState);
+        i === 0 ? (d3.select("#unemployementRate").transition().duration(500).style("visibility", "visible") &&
+            d3.select("#employementRate").transition().duration(500).style("visibility", "hidden") &&   d3.select("#text").text("Unemployement rate of " + activeState + " " + "Top 11 counties for selected year")
+            &&
+            scenethreechart(activeState)) : ( d3.select("#employementRate").transition().duration(500).style("visibility", "visible")
+             &&  d3.select("#text").text("Employement rate of " + activeState + " " + "Top 11 counties for selected year") && 
+             scenefourchart(activeState));
 })
 
-d3.select("#barchart").append("g").attr("transform","translate(50,50)").attr("id", "xaxis").call(d3.axisLeft(y))
+d3.select("#barchart").append("g").attr("transform","translate(50,50)").attr("id", "xaxis").call(d3.axisLeft(y).tickPadding([-4]))
 
 d3.select("#barchart").append("g").attr("transform","translate(50,550)").attr("id", "yaxis").call(d3.axisBottom(x).tickFormat(function(d,i){
     return i ===0? 'Unemployeed' : 'Employeed'
 }))
-
-    }
-    }
+}}
 
     function scenethreechart(state){
         var counties = [];
@@ -306,7 +373,6 @@ d3.select("#barchart").append("g").attr("transform","translate(50,550)").attr("i
         var domain  = [];
         var count = 0;
         const map1 = new Map();
-        console.log(state)
         if (state === null) {
             createUnemployementStateBarChart();
         }
@@ -334,9 +400,7 @@ var height = d3.scaleLinear().domain([0.0,15.0]).range([0,500])
 unemployeement_rate = unemployeement_rate.sort(function(a,b){
     return b - a;
 });
-console.log(unemployeement_rate)
 var sortedData = unemployeement_rate.slice(0,11);
-console.log(sortedData)
 d3.select("#unemployementRate")
 .append("g")
 .attr("transform","translate(50,50)").attr("id", "rect").selectAll("#rect").data(sortedData).enter().append("rect")
@@ -354,13 +418,14 @@ d3.select("#unemployementRate")
         d3.selectAll("#totalthird").style("display", "none");
          d3.select(".unemployeetotalthird").remove();
         }).on("click", function(d,i){
+            d3.select("#employementRate").transition().duration(500).style("visibility", "hidden");//temporary
+            
             createUnemployementStateBarChart();
 })
 var x1 = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11]).range([0,1200]);
 d3.select("#unemployementRate").append("g").attr("transform","translate(50,50)").attr("id", "xtaxis").call(d3.axisLeft(y))
 
 d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)").attr("id", "ytaxis").call(d3.axisBottom(x1).tickFormat(function(d,i){
-        console.log(d)   
     var stateName = counties[d];
     return map1.get(sortedData[i])
 }))
@@ -368,12 +433,80 @@ d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)"
  }
     }
 
+    function scenefourchart(state){
+        var counties = [];
+        var employeement_rate=[];
+        var domain  = [];
+        var count = 0;
+        const map1 = new Map();
+        var employement_ratio = 0.0;
+        if (state === null) {
+            createemployementStateBarChart();
+        }
+
+    if (state !== null) {
+        
+    statedata.UnemploymentMedianIncome.filter(function(d){
+if (d['State'] == abbrState(state,"abbr") && state !== d['Area_Name']) {
+ //   if (counties.length < 11) {
+        var employeed = d['Employed' + '_' + sliderYear].replaceAll(",","");
+        var labourForce = d['Civilian_labor_force' + '_' + sliderYear].replaceAll(",","")
+
+        employement_ratio = (employeed/labourForce) * 100;
+        counties.push(d['Area_Name']);
+        
+        employeement_rate.push(employement_ratio);
+        map1.set(employement_ratio,d['Area_Name']); 
+        domain.push(count);
+        count = count + 1;
+}})
+
+var max = d3.max(data);
+var x = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11]).range([0,1200]).padding(0.3)
+var y = d3.scaleLinear().domain([0.0,100.0]).range([500,0])
+var height = d3.scaleLinear().domain([0.0,100.0]).range([0,500]) 
+unemployeement_rate = employeement_rate.sort(function(a,b){
+    return b - a;
+});
+var sortedData = employeement_rate.slice(0,11);
+d3.select("#employementRate")
+.append("g")
+.attr("transform","translate(50,50)").attr("id", "rectf").selectAll("#rect").data(sortedData).enter().append("rect")
+.attr("x", function (d,i) {return x(i)})
+.attr("y",function(d){return y(d)})
+.attr("cursor", "pointer")
+.attr("width", 33.3333)
+.attr("id", "rect")
+.attr("height", function(i){return height(i)})
+.attr("fill", "blue")
+.on("mouseover", function(d, i) {
+    employeeLabelfourth(d, x(i), y(d));
+    d3.select("#totalthird").style("display", "block");
+      }).on("mouseout", function(d, i) {
+        d3.selectAll("#totalthird").style("display", "none");
+         d3.select(".employeetotalfourth").remove();
+        }).on("click", function(d,i){
+            d3.select("#unemployementRate").transition().duration(500).style("visibility", "hidden");//temporary
+
+            createemployementStateBarChart();
+})
+var x1 = d3.scaleBand().domain([0,1,2,3,4,5,6,7,8,9,10,11]).range([0,1200]);
+d3.select("#employementRate").append("g").attr("transform","translate(50,50)").attr("id", "xfaxis").call(d3.axisLeft(y))
+
+d3.select("#employementRate").append("g").attr("transform","translate(50,550)").attr("id", "yfaxis").call(d3.axisBottom(x1).tickFormat(function(d,i){
+    var stateName = counties[d];
+    return map1.get(sortedData[i])
+}))
+
+ }
+    }
+
+
     function createStateBarChart(){
      d3.select("#svg").append("svg")
     .attr("width", width)
     .attr("height", height)
     .attr("id", "barchart")
-
     }
         
     function createUnemployementStateBarChart(){
@@ -381,6 +514,13 @@ d3.select("#unemployementRate").append("g").attr("transform","translate(50,550)"
     .attr("width", 2000)
     .attr("height", height)
     .attr("id", "unemployementRate")
+    }
+
+    function createemployementStateBarChart(){
+     d3.select("#svg").append("svg")
+    .attr("width", 2000)
+    .attr("height", height)
+    .attr("id", "employementRate")
 
     }
 
@@ -408,7 +548,6 @@ unemployeed
    })
 .attr("text-anchor","middle")
 .attr('font-size','12pt');
-   
 
  }   
 
@@ -436,9 +575,35 @@ unemployeed
    })
 .attr("text-anchor","middle")
 .attr('font-size','12pt');
+ }   
+
+ function employeeLabelfourth(d, x, y){
+     var totalNumber = d;
+    unemployeed = d3.selectAll('#rectf')
+   .append("g")
+   .attr("class", "employeetotalfourth")
+   .attr("id","totalthird")
+   .on("mouseover", function(d, i) {
+          d3.select(this).style("display", "block");
+      }).on("mouseout", function(d, i) {
+           d3.select(this).style("display", "none")})
    
 
+unemployeed
+   .append("text")
+   .attr("class", "countryName")
+   .style("text-anchor", "middle")
+   .attr("dx", x)
+   .attr("dy", y)
+   .style("fill", "#97ca30")
+   .text(function(d) {
+      return totalNumber;
+   })
+.attr("text-anchor","middle")
+.attr('font-size','12pt');
+
  }   
+
    
 countryLabels = countriesGroup.selectAll('g')
    .data(stateCoord.features)
@@ -556,7 +721,7 @@ function abbrState(input, to){
     ];
 
     if (to == 'abbr'){
-    //    console.log(input);
+
         input = input.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
         for(i = 0; i < states.length; i++){
             if(states[i][0] == input){
